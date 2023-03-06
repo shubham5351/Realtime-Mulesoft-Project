@@ -1,11 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="travelgo-external-system-apiFlow" doc:id="5a685980-1389-4a86-a0b1-1797b28ee1ca" >
 		<http:listener doc:name="Listener" doc:id="3e531c60-233a-4ffc-87e8-475a5512aa16" config-ref="HTTP_Listener_config" path="${http.listener.path}"/>
-		<logger level="INFO" doc:name="Logger" doc:id="99214803-0920-45e8-907c-310418a8a818" />
+		<logger level="INFO" doc:name="Logger" doc:id="99214803-0920-45e8-907c-310418a8a818" message="Request Received for TraveOnTip External System for TransactionId : #[attributes.headers.trasactionId]"/>
+		<ee:transform doc:name="to check routes or schedules" doc:id="24a99930-aee6-4aae-b8e7-61c1fd0cef78" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="serviceType" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams.serviceType]]></ee:set-variable>
+				<ee:set-variable variableName="transactionId" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.headers.trasactionId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="517dad59-36a2-49ef-a988-ac9be090f2b2" >
+			<when expression='#[vars.serviceType == "routes"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="d3dca569-1bcf-4373-89d7-0d8a1da1a2a8" message="Routes flow called for TraveOnTip External System for TransactionId : #[vars.transactionId]"/>
+				<flow-ref doc:name="getRoutes-implementationFlow" doc:id="e8933a30-a20a-42a3-b413-3d300e8403ae" name="getRoutes-implementationFlow"/>
+			</when>
+			<when expression='#[vars.serviceType == "schedules"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="c2906f6c-0960-4d1d-9a02-1d6cf2fd91dd" message="Schedules flow called for TraveOnTip External System for TransactionId : #[vars.trasactionId]"/>
+				<flow-ref doc:name="getSchedules-implementationFlow" doc:id="09b47612-daa2-4415-bbe8-88ca55850233" name="getSchedules-implementationSub_Flow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="f5ec6917-155e-4fc2-919b-0b65baae2514" message="uriParam is not correct for TraveOnTip External System for TransactionId : #[vars.trasactionId]"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="89c15849-0d08-42bf-bacf-72e4b7e25368" message="Response send for TraveOnTip External System for TransactionId : #[vars.transactionId]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="68800131-251c-45a0-b072-03fd332ee291" >
+				<logger level="INFO" doc:name="Logger" doc:id="599193d6-3955-4b46-aa00-e52545f991d6" message="Error occured for TraveOnTip External System for TransactionId : #[attributes.headers.trasactionId]"/>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 </mule>
