@@ -9,7 +9,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<db:select doc:name="Select Routes for TravelOnTip System" doc:id="78a9ecf0-4552-4f17-9d2d-c5a2e28f1e74" config-ref="Database_Config">
 			<db:sql ><![CDATA[SELECT * FROM TravelOnTip WHERE companyName="travelOnTip"]]></db:sql>
 		</db:select>
-		<ee:transform doc:name="Transform DB Message to JSON" doc:id="25ea951e-9ce0-4654-b20c-4107de5c6711" >
+		<ee:transform doc:name="Transform DB Response Message to JSON" doc:id="25ea951e-9ce0-4654-b20c-4107de5c6711" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
